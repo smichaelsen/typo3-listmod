@@ -75,14 +75,16 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 				$parentObject->HTMLcode .= $this->formEngine->printNeededJSFunctions();
 				$itemList = explode(',', $selectedFieldsList);
 				$parentObject->HTMLcode .= '<fieldset>';
-				$parentObject->HTMLcode .= '<legend>Suchoptionen</legend>';
+				$searchformLegendLabel = 'LLL:EXT:listmod/Resources/Private/Language/locallang.xml:searchform.legend';
+				$parentObject->HTMLcode .= '<legend>' .$this->formEngine->sL($searchformLegendLabel).  '</legend>';
 				foreach ($itemList as $item) {
 					if ($conf = $GLOBALS['TCA'][$table]['columns'][$item]['config_filter']) {
 						$parentObject->HTMLcode .= $this->makeFormitem($item, $table, $conf);
 						$additionalWhereClause .= $this->makeWhereClause($item, $conf, $this->filterCriteria[$item], $table);
 					}
 				}
-				$parentObject->HTMLcode .= '<input type="submit" value="Suche starten" style="margin-top: 15px;" />';
+				$searchButtonLabel = 'LLL:EXT:listmod/Resources/Private/Language/locallang.xml:searchform.submit';
+				$parentObject->HTMLcode .= '<input type="submit" value="' . $this->formEngine->sL($searchButtonLabel) . '" style="margin-top: 15px;" />';
 				$parentObject->HTMLcode .= '</fieldset>';
 			}
 		}
