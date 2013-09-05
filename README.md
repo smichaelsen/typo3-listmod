@@ -1,7 +1,7 @@
 # TYPO3 Extension: List Module+
 ## Extension Key: listmod
 
-EXT:listmod adds some additionaly features to the list module.
+EXT:listmod adds some additional features to the list module.
 
 ### addWhere
 
