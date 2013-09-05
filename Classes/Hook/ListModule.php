@@ -7,6 +7,11 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHookInterface {
 
 	/**
+	 * @var \TYPO3\CMS\Core\Database\DatabaseConnection
+	 */
+	protected $databaseConnection;
+
+	/**
 	 * @var string
 	 */
 	protected $extensionKey = 'listmod';
@@ -32,39 +37,54 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 	 * @return void
 	 */
 	public function getDBlistQuery($table, $pageId, &$additionalWhereClause, &$selectedFieldsList, &$parentObject) {
+		$this->databaseConnection = $GLOBALS['TYPO3_DB'];
+
 		// addWhere
 		if (is_array($parentObject->modTSconfig['properties']['addWhere.']) && isset($parentObject->modTSconfig['properties']['addWhere.'][$table])) {
 			$additionalWhereClause .= $parentObject->modTSconfig['properties']['addWhere.'][$table];
 		}
 
-		// filter
-		if(array_key_exists('filter', $GLOBALS['TCA'][$table]['ctrl']) && ($parentObject->table == $table)) {
-			$posts = GeneralUtility::_POST($this->extensionKey);
-			/** @var \TYPO3\CMS\Core\Authentication\BackendUserAuthentication $backendUserAuthentication */
-			$backendUserAuthentication = $GLOBALS['BE_USER'];
-			if(isset($posts)) {
-				$backendUserAuthentication->setAndSaveSessionData($table."_filtercriteria", $posts);
-				$this->filterCriteria = $posts;
-			} else{
-				$this->filterCriteria = $backendUserAuthentication->getSessionData($table."_filtercriteria");
+		// forceColumnVisibility
+		foreach ($GLOBALS['TCA'][$table]['columns'] as $fieldName => $config) {
+			if ($config['config']['forceColumnVisibility']) {
+				$selectedFieldsList .= ',' . $fieldName;
+				$parentObject->setFields = $selectedFieldsList;
+				$parentObject->fieldArray[] = $fieldName;
 			}
+		}
 
-			$this->formEngine = GeneralUtility::makeInstance('TYPO3\\CMS\\Backend\\Form\\FormEngine');
-			$this->formEngine->initDefaultBEmode();
-			$this->formEngine->backPath = $GLOBALS['BACK_PATH'];
-			$parentObject->HTMLcode .= $this->formEngine->printNeededJSFunctions_top();
-			$parentObject->HTMLcode .= $this->formEngine->printNeededJSFunctions();
-			$itemList = explode(',', $selectedFieldsList);
-			$parentObject->HTMLcode .= '<fieldset>';
-			$parentObject->HTMLcode .= '<legend>Suchoptionen</legend>';
-			foreach ($itemList as $item) {
-				if ($conf = $GLOBALS['TCA'][$table]['columns'][$item]['config_filter']) {
-					$parentObject->HTMLcode .= $this->makeFormitem($item, $table, $conf);
-					$additionalWhereClause .= $this->makeWhereClause($item, $conf, $this->filterCriteria[$item], $table);
+		// filter
+		if (array_key_exists('filter', $GLOBALS['TCA'][$table]['ctrl'])) {
+			// check if there are records
+			$queryParts = $parentObject->makeQueryArray($table, $pageId, $additionalWhereClause, $selectedFieldsList);
+			$itemcount = $this->databaseConnection->exec_SELECTcountRows('*', $queryParts['FROM'], $queryParts['WHERE']);
+			if ($itemcount) {
+				$posts = GeneralUtility::_POST($this->extensionKey);
+				/** @var \TYPO3\CMS\Core\Authentication\BackendUserAuthentication $backendUserAuthentication */
+				$backendUserAuthentication = $GLOBALS['BE_USER'];
+				if(isset($posts)) {
+					$backendUserAuthentication->setAndSaveSessionData($table."_filtercriteria", $posts);
+					$this->filterCriteria = $posts;
+				} else{
+					$this->filterCriteria = $backendUserAuthentication->getSessionData($table."_filtercriteria");
 				}
+				$this->formEngine = GeneralUtility::makeInstance('TYPO3\\CMS\\Backend\\Form\\FormEngine');
+				$this->formEngine->initDefaultBEmode();
+				$this->formEngine->backPath = $GLOBALS['BACK_PATH'];
+				$parentObject->HTMLcode .= $this->formEngine->printNeededJSFunctions_top();
+				$parentObject->HTMLcode .= $this->formEngine->printNeededJSFunctions();
+				$itemList = explode(',', $selectedFieldsList);
+				$parentObject->HTMLcode .= '<fieldset>';
+				$parentObject->HTMLcode .= '<legend>Suchoptionen</legend>';
+				foreach ($itemList as $item) {
+					if ($conf = $GLOBALS['TCA'][$table]['columns'][$item]['config_filter']) {
+						$parentObject->HTMLcode .= $this->makeFormitem($item, $table, $conf);
+						$additionalWhereClause .= $this->makeWhereClause($item, $conf, $this->filterCriteria[$item], $table);
+					}
+				}
+				$parentObject->HTMLcode .= '<input type="submit" value="Suche starten" style="margin-top: 15px;" />';
+				$parentObject->HTMLcode .= '</fieldset>';
 			}
-			$parentObject->HTMLcode .= '<input type="submit" value="Suche starten" style="margin-top: 15px;" />';
-			$parentObject->HTMLcode .= '</fieldset>';
 		}
 	}
 
@@ -122,9 +142,7 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 	 * @return string
 	 */
 	protected function makeQueryInputTrim($item, $itemValue, $table) {
-		/** @var \TYPO3\CMS\Core\Database\DatabaseConnection $databaseConnection */
-		$databaseConnection = $GLOBALS['TYPO3_DB'];
-		$query = ' AND ' . $databaseConnection->searchQuery(
+		$query = ' AND ' . $this->databaseConnection->searchQuery(
 			array('searchword' => $itemValue),
 			array('field' => $item),
 			$table

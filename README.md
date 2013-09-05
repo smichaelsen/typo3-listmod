@@ -16,3 +16,7 @@ Will result in the list module only showing text content elements.
 ### Filters
 
 This functionality is taken over from [EXT:be_tablefilter](http://typo3.org/extensions/repository/view/be_tablefilter).
+
+### forceColumnVisibility
+
+TCA option that makes a certain field always visible in list view.
