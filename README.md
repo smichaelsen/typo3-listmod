@@ -43,3 +43,5 @@ In the single table view (click the + next to the table name ist list view) ever
 	$GLOBALS['TCA']['fe_users']['columns']['usergroup']['config']['forceColumnVisibility'] = TRUE;
 
 Voila!
+
+[![Flattr Button](http://api.flattr.com/button/button-compact-static-100x17.png "Flattr This!")](https://flattr.com/thing/1268753/smichaelsentypo3-listmod-on-GitHub "smichaelsen/typo3-listmod on GitHub")
