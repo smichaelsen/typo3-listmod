@@ -38,6 +38,9 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 	 */
 	public function getDBlistQuery($table, $pageId, &$additionalWhereClause, &$selectedFieldsList, &$parentObject) {
 		$this->databaseConnection = $GLOBALS['TYPO3_DB'];
+		$this->formEngine = GeneralUtility::makeInstance('TYPO3\\CMS\\Backend\\Form\\FormEngine');
+		$this->formEngine->initDefaultBEmode();
+		$this->formEngine->backPath = $GLOBALS['BACK_PATH'];
 
 		// addWhere
 		if (is_array($parentObject->modTSconfig['properties']['addWhere.']) && isset($parentObject->modTSconfig['properties']['addWhere.'][$table])) {
@@ -68,24 +71,25 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 				} else{
 					$this->filterCriteria = $backendUserAuthentication->getSessionData($table."_filtercriteria");
 				}
-				$this->formEngine = GeneralUtility::makeInstance('TYPO3\\CMS\\Backend\\Form\\FormEngine');
-				$this->formEngine->initDefaultBEmode();
-				$this->formEngine->backPath = $GLOBALS['BACK_PATH'];
-				$parentObject->HTMLcode .= $this->formEngine->printNeededJSFunctions_top();
-				$parentObject->HTMLcode .= $this->formEngine->printNeededJSFunctions();
+				$searchFieldContents = array();
 				$itemList = explode(',', $selectedFieldsList);
-				$parentObject->HTMLcode .= '<fieldset>';
-				$searchformLegendLabel = 'LLL:EXT:listmod/Resources/Private/Language/locallang.xml:searchform.legend';
-				$parentObject->HTMLcode .= '<legend>' .$this->formEngine->sL($searchformLegendLabel).  '</legend>';
 				foreach ($itemList as $item) {
 					if ($conf = $GLOBALS['TCA'][$table]['columns'][$item]['config_filter']) {
-						$parentObject->HTMLcode .= $this->makeFormitem($item, $table, $conf);
+						$searchFieldContents[] = $this->makeFormitem($item, $table, $conf);
 						$additionalWhereClause .= $this->makeWhereClause($item, $conf, $this->filterCriteria[$item], $table);
 					}
 				}
-				$searchButtonLabel = 'LLL:EXT:listmod/Resources/Private/Language/locallang.xml:searchform.submit';
-				$parentObject->HTMLcode .= '<input type="submit" value="' . $this->formEngine->sL($searchButtonLabel) . '" style="margin-top: 15px;" />';
-				$parentObject->HTMLcode .= '</fieldset>';
+				if (count($searchFieldContents)) {
+					$searchFormContent = '';
+					$searchFormContent .= $this->formEngine->printNeededJSFunctions_top();
+					$searchFormContent .= $this->formEngine->printNeededJSFunctions();
+					$searchFormContent .= '<fieldset>';
+					$searchFormContent .= '<legend>' .$this->formEngine->sL('LLL:EXT:listmod/Resources/Private/Language/locallang.xml:searchform.legend').  '</legend>';
+					$searchFormContent .= join('', $searchFieldContents);
+					$searchFormContent .= '<input type="submit" value="' . $this->formEngine->sL('LLL:EXT:listmod/Resources/Private/Language/locallang.xml:searchform.submit') . '" style="margin-top: 15px;" />';
+					$searchFormContent .= '</fieldset>';
+					$parentObject->HTMLcode .= $searchFormContent;
+				}
 			}
 		}
 	}
