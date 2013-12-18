@@ -4,7 +4,7 @@ namespace T3SEO\Listmod\Hook;
 
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHookInterface {
+class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHookInterface, \TYPO3\CMS\Recordlist\RecordList\RecordListHookInterface {
 
 	/**
 	 * @var \TYPO3\CMS\Core\Database\DatabaseConnection
@@ -167,6 +167,70 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 		return $query;
 	}
 
+	/**
+	 * Modifies Web>List clip icons (copy, cut, paste, etc.) of a displayed row
+	 *
+	 * @param string $table The current database table
+	 * @param array $row The current record row
+	 * @param array $cells The default clip-icons to get modified
+	 * @param object $parentObject Instance of calling object
+	 * @return array The modified clip-icons
+	 */
+	public function makeClip($table, $row, $cells, &$parentObject) {
+		return $cells;
+	}
+
+	/**
+	 * Modifies Web>List control icons of a displayed row
+	 *
+	 * @param string $table The current database table
+	 * @param array $row The current record row
+	 * @param array $cells The default control-icons to get modified
+	 * @param \TYPO3\CMS\Recordlist\RecordList\DatabaseRecordList $parentObject Instance of calling object
+	 * @return array The modified control-icons
+	 */
+	public function makeControl($table, $row, $cells, &$parentObject) {
+		if (isset($parentObject->modTSconfig['properties']['enableControls.'])) {
+			$configuration = $parentObject->modTSconfig['properties']['enableControls.'];
+		} else {
+			return $cells;
+		}
+		$defaultSettings = isset($configuration['_default.']) ? $configuration['_default.'] : array();
+		$tableSettings = isset($configuration[$table . '.']) ? $configuration[$table . '.'] : array();
+		$settings = GeneralUtility::array_merge_recursive_overrule($defaultSettings, $tableSettings);
+		foreach (array_keys($cells) as $cellName) {
+			if (isset($settings[$cellName]) && $settings[$cellName] === "0") {
+				$cells[$cellName] = $parentObject->spaceIcon;
+			}
+		}
+		return $cells;
+	}
+
+	/**
+	 * Modifies Web>List header row columns/cells
+	 *
+	 * @param string $table The current database table
+	 * @param array $currentIdList Array of the currently displayed uids of the table
+	 * @param array $headerColumns An array of rendered cells/columns
+	 * @param object $parentObject Instance of calling (parent) object
+	 * @return array Array of modified cells/columns
+	 */
+	public function renderListHeader($table, $currentIdList, $headerColumns, &$parentObject) {
+		return $headerColumns;
+	}
+
+	/**
+	 * Modifies Web>List header row clipboard/action icons
+	 *
+	 * @param string $table The current database table
+	 * @param array $currentIdList Array of the currently displayed uids of the table
+	 * @param array $cells An array of the current clipboard/action icons
+	 * @param object $parentObject Instance of calling (parent) object
+	 * @return array Array of modified clipboard/action icons
+	 */
+	public function renderListHeaderActions($table, $currentIdList, $cells, &$parentObject) {
+		return $cells;
+	}
 }
 
 ?>
