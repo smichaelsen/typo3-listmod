@@ -44,4 +44,27 @@ In the single table view (click the + next to the table name ist list view) ever
 
 Voila!
 
+### enableControls
+
+If the control panel is activated in the list module, several icons are displayed to interact with the records (edit, move, history, etc.). With the following options you can enable/disable those controls.
+The key _default will apply to all tables. You can overwrite its configuration for each table.
+
+	mod.web_list {
+		enableDisplayBigControlPanel = activated
+		enableControls {
+			_default {
+				edit = 0
+				history = 0
+			}
+			tt_content {
+				history = 1
+				moveDown = 0
+				moveUp = 0
+			}
+		}
+	}
+
+This will disable the edit icon for all tables, disable history for all table except tt_content and disable moveDown and moveUp for tt_content.<br>
+The names of all icons are: view, edit, move, viewBig, history, version, perms, new, moveUp, moveDown, hide, delete, moveLeft, moveRight
+
 [![Flattr Button](http://api.flattr.com/button/button-compact-static-100x17.png "Flattr This!")](https://flattr.com/thing/1268753/smichaelsentypo3-listmod-on-GitHub "smichaelsen/typo3-listmod on GitHub")
