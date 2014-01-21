@@ -71,7 +71,14 @@ class TcaTypeRecordList {
 	 */
 	protected function getRecordsToList($config) {
 		$records = array();
-		$res = $this->databaseConnection->exec_SELECTquery('*', $config['foreign_table'], '1=1 ' . BackendUtility::deleteClause($config['foreign_table']) . ' ' . $this->replaceWhereMarkers($config['foreign_table_where']));
+		$where = '1=1 ' . BackendUtility::deleteClause($config['foreign_table']) . ' ' . $this->replaceWhereMarkers($config['foreign_table_where']);
+		$res = $this->databaseConnection->exec_SELECTquery(
+			'*',
+			$config['foreign_table'],
+			$where,
+			'',
+			$config['foreign_table_sorting']
+		);
 		while ($record = $this->databaseConnection->sql_fetch_assoc($res)) {
 			$records[] = $record;
 		}
