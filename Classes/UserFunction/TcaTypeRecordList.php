@@ -53,8 +53,12 @@ class TcaTypeRecordList {
 			$popupId = \TYPO3\CMS\Core\Utility\GeneralUtility::shortmd5(serialize($record));
 			$content .= '<div>';
 			$url = 'alt_doc.php?returnUrl=' . rawurlencode('wizard_edit.php?doClose=1') . '&edit[' . $config['foreign_table'] . '][' . $record['uid'] . ']=edit';
+			if ($config['editColumnsOnly']) {
+				$url .= '&columnsOnly=' . rawurlencode($config['editColumnsOnly']);
+			}
 			$aOnClick = $parentObject->blur() . 'vHWin=window.open(\'' . $url . '\',\'popUp' . $popupId . '\',\'' . $config['JSopenParams'] . '\');vHWin.focus();return false;';
 			$content .= '<a href="#" onclick="' . $aOnClick . '">';
+			$content .= '<img src="' . \TYPO3\CMS\Backend\Utility\IconUtility::getIcon($config['foreign_table'], $record) . '" /> ';
 			$content .= BackendUtility::getRecordTitle($config['foreign_table'], $record);
 			$content .= '</a>';
 			$content .= '</div>';
