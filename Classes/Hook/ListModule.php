@@ -34,6 +34,7 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 	 * @param string $additionalWhereClause An additional WHERE clause
 	 * @param string $selectedFieldsList Comma separated list of selected fields
 	 * @param \TYPO3\CMS\Recordlist\RecordList\DatabaseRecordList $parentObject Parent localRecordList object
+	 *
 	 * @return void
 	 */
 	public function getDBlistQuery($table, $pageId, &$additionalWhereClause, &$selectedFieldsList, &$parentObject) {
@@ -65,11 +66,11 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 				$posts = GeneralUtility::_POST($this->extensionKey);
 				/** @var \TYPO3\CMS\Core\Authentication\BackendUserAuthentication $backendUserAuthentication */
 				$backendUserAuthentication = $GLOBALS['BE_USER'];
-				if(isset($posts)) {
-					$backendUserAuthentication->setAndSaveSessionData($table."_filtercriteria", $posts);
+				if (isset($posts)) {
+					$backendUserAuthentication->setAndSaveSessionData($table . "_filtercriteria", $posts);
 					$this->filterCriteria = $posts;
-				} else{
-					$this->filterCriteria = $backendUserAuthentication->getSessionData($table."_filtercriteria");
+				} else {
+					$this->filterCriteria = $backendUserAuthentication->getSessionData($table . "_filtercriteria");
 				}
 				$searchFieldContents = array();
 				$itemList = explode(',', $selectedFieldsList);
@@ -80,11 +81,13 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 					}
 				}
 				if (count($searchFieldContents)) {
+					$searchLabel = $this->formEngine->sL('LLL:EXT:listmod/Resources/Private/Language/locallang.xml:searchform.legend');
+					$tableTitle = $this->formEngine->sL($GLOBALS['TCA'][$table]['ctrl']['title']);
 					$searchFormContent = '';
 					$searchFormContent .= $this->formEngine->printNeededJSFunctions_top();
 					$searchFormContent .= $this->formEngine->printNeededJSFunctions();
 					$searchFormContent .= '<fieldset>';
-					$searchFormContent .= '<legend>' .$this->formEngine->sL('LLL:EXT:listmod/Resources/Private/Language/locallang.xml:searchform.legend').  '</legend>';
+					$searchFormContent .= '<legend>' . $searchLabel . ' "' . $tableTitle . '"</legend>';
 					$searchFormContent .= join('', $searchFieldContents);
 					$searchFormContent .= '<input type="submit" value="' . $this->formEngine->sL('LLL:EXT:listmod/Resources/Private/Language/locallang.xml:searchform.submit') . '" style="margin-top: 15px;" />';
 					$searchFormContent .= '</fieldset>';
@@ -98,24 +101,26 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 	 * @param string $item
 	 * @param string $table
 	 * @param array $conf
+	 *
 	 * @return string
 	 */
 	protected function makeFormitem($item, $table, $conf) {
-		$confarray = array(
-			'itemFormElName' => $this->extensionKey.'['.$item.']',
+		$confarray   = array(
+			'itemFormElName' => $this->extensionKey . '[' . $item . ']',
 			'itemFormElValue' => '',
 			'fieldConf' => array(
 				'config' => $conf,
 			),
 		);
-		$labelDef = $GLOBALS['TCA'][$table]['columns'][$item]['label'];
-		$labelValue = $this->formEngine->sL($labelDef);
-		$formElement = $this->formEngine->getSingleField_SW('','',array(),$confarray);
-		$formElement = str_replace($this->extensionKey.'['.$item.']'.'_hr', $this->extensionKey.'['.$item.']', $formElement);
-		$formElement = preg_replace('/<input\ type=\"hidden.*?>/s','',$formElement);
-		$formElement = str_replace($this->extensionKey.'['.$item.']" value=""', $this->extensionKey.'['.$item.']" value="'.$this->filterCriteria[$item].'"', $formElement);
-		$formElement = str_replace('<option value="'.$this->filterCriteria[$item].'">', '<option value="'.$this->filterCriteria[$item].'" selected="selected">', $formElement);
-		$formElement = '<div style="float:left; margin: 5px;"><label>'.$labelValue.'</label><br />'.$formElement.'</div>';
+		$labelDef    = $GLOBALS['TCA'][$table]['columns'][$item]['label'];
+		$labelValue  = $this->formEngine->sL($labelDef);
+		$formElement = $this->formEngine->getSingleField_SW('', '', array(), $confarray);
+		$formElement = str_replace($this->extensionKey . '[' . $item . ']' . '_hr', $this->extensionKey . '[' . $item . ']', $formElement);
+		$formElement = preg_replace('/<input\ type=\"hidden.*?>/s', '', $formElement);
+		$formElement = str_replace($this->extensionKey . '[' . $item . ']" value=""', $this->extensionKey . '[' . $item . ']" value="' . $this->filterCriteria[$item] . '"', $formElement);
+		$formElement = str_replace('<option value="' . $this->filterCriteria[$item] . '">', '<option value="' . $this->filterCriteria[$item] . '" selected="selected">', $formElement);
+		$formElement = '<div style="float:left; margin: 5px;"><label>' . $labelValue . '</label><br />' . $formElement . '</div>';
+
 		return $formElement;
 	}
 
@@ -124,12 +129,13 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 	 * @param array $conf
 	 * @param string $itemValue
 	 * @param string $table
+	 *
 	 * @return mixed
 	 */
 	protected function makeWhereClause($item, $conf, $itemValue, $table) {
 		$whereClause = '';
-		if (isset($this->filterCriteria[$item]) && ($this->filterCriteria[$item]!='-1') && ($this->filterCriteria[$item]!='')) {
-			switch($conf['type']) {
+		if (isset($this->filterCriteria[$item]) && ($this->filterCriteria[$item] != '-1') && ($this->filterCriteria[$item] != '')) {
+			switch ($conf['type']) {
 				case 'select':
 					$whereClause = $this->makeQuerySelect($item, $itemValue, $table);
 					break;
@@ -138,6 +144,7 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 					break;
 			}
 		}
+
 		return $whereClause;
 	}
 
@@ -145,14 +152,16 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 	 * @param string $item
 	 * @param string $itemValue
 	 * @param string $table
+	 *
 	 * @return string
 	 */
 	protected function makeQueryInputTrim($item, $itemValue, $table) {
 		$query = ' AND ' . $this->databaseConnection->searchQuery(
-			array('searchword' => $itemValue),
-			array('field' => $item),
-			$table
-		);
+				array('searchword' => $itemValue),
+				array('field' => $item),
+				$table
+			);
+
 		return $query;
 	}
 
@@ -160,10 +169,12 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 	 * @param string $item
 	 * @param string $itemValue
 	 * @param string $table
+	 *
 	 * @return string
 	 */
 	protected function makeQuerySelect($item, $itemValue, $table) {
 		$query = ' AND (' . $table . '.' . $item . ' = \'' . $itemValue . '\')';
+
 		return $query;
 	}
 
@@ -174,6 +185,7 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 	 * @param array $row The current record row
 	 * @param array $cells The default clip-icons to get modified
 	 * @param object $parentObject Instance of calling object
+	 *
 	 * @return array The modified clip-icons
 	 */
 	public function makeClip($table, $row, $cells, &$parentObject) {
@@ -187,6 +199,7 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 	 * @param array $row The current record row
 	 * @param array $cells The default control-icons to get modified
 	 * @param \TYPO3\CMS\Recordlist\RecordList\DatabaseRecordList $parentObject Instance of calling object
+	 *
 	 * @return array The modified control-icons
 	 */
 	public function makeControl($table, $row, $cells, &$parentObject) {
@@ -196,13 +209,14 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 			return $cells;
 		}
 		$defaultSettings = isset($configuration['_default.']) ? $configuration['_default.'] : array();
-		$tableSettings = isset($configuration[$table . '.']) ? $configuration[$table . '.'] : array();
-		$settings = GeneralUtility::array_merge_recursive_overrule($defaultSettings, $tableSettings);
+		$tableSettings   = isset($configuration[$table . '.']) ? $configuration[$table . '.'] : array();
+		$settings        = GeneralUtility::array_merge_recursive_overrule($defaultSettings, $tableSettings);
 		foreach (array_keys($cells) as $cellName) {
 			if (isset($settings[$cellName]) && $settings[$cellName] === "0") {
 				$cells[$cellName] = $parentObject->spaceIcon;
 			}
 		}
+
 		return $cells;
 	}
 
@@ -213,6 +227,7 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 	 * @param array $currentIdList Array of the currently displayed uids of the table
 	 * @param array $headerColumns An array of rendered cells/columns
 	 * @param object $parentObject Instance of calling (parent) object
+	 *
 	 * @return array Array of modified cells/columns
 	 */
 	public function renderListHeader($table, $currentIdList, $headerColumns, &$parentObject) {
@@ -226,6 +241,7 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 	 * @param array $currentIdList Array of the currently displayed uids of the table
 	 * @param array $cells An array of the current clipboard/action icons
 	 * @param object $parentObject Instance of calling (parent) object
+	 *
 	 * @return array Array of modified clipboard/action icons
 	 */
 	public function renderListHeaderActions($table, $currentIdList, $cells, &$parentObject) {
