@@ -1,5 +1,5 @@
-TYPO3 Extension: List Module+
-=============================
+TYPO3 Extension: List Module+ |exticon|
+=======================================
 
 Extension Key: listmod
 ----------------------
@@ -111,3 +111,5 @@ moveRight
 
 .. |Flattr Button| image:: http://api.flattr.com/button/button-compact-static-100x17.png
 :target: https://flattr.com/thing/1268753/smichaelsentypo3-listmod-on-GitHub
+
+.. |exticon| image:: https://raw.githubusercontent.com/smichaelsen/typo3-listmod/develop/ext_icon.gif
