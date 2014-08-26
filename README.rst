@@ -105,11 +105,11 @@ tt\_content. The names of all icons are: view, edit, move, viewBig,
 history, version, perms, new, moveUp, moveDown, hide, delete, moveLeft,
 moveRight
 
-|Flattr Button|
+|Flattr Button|_
 
 .. _`EXT:be\_tablefilter`: http://typo3.org/extensions/repository/view/be_tablefilter
 
 .. |Flattr Button| image:: http://api.flattr.com/button/button-compact-static-100x17.png
-:target: https://flattr.com/thing/1268753/smichaelsentypo3-listmod-on-GitHub
+.. _Flattr Button: https://flattr.com/thing/1268753/smichaelsentypo3-listmod-on-GitHub
 
 .. |exticon| image:: https://raw.githubusercontent.com/smichaelsen/typo3-listmod/develop/ext_icon.gif
