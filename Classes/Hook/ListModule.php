@@ -52,7 +52,6 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 		foreach ($GLOBALS['TCA'][$table]['columns'] as $fieldName => $config) {
 			if ($config['config']['forceColumnVisibility']) {
 				$selectedFieldsList .= ',' . $fieldName;
-				$parentObject->setFields = $selectedFieldsList;
 				$parentObject->fieldArray[] = $fieldName;
 			}
 		}
