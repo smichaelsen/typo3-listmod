@@ -2,9 +2,13 @@
 
 namespace T3SEO\Listmod\Hook;
 
+use TYPO3\CMS\Backend\RecordList\RecordListGetTableHookInterface;
+use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Recordlist\RecordList\RecordListHookInterface;
+use TYPO3\CMS\Lang\LanguageService;
 
-class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHookInterface, \TYPO3\CMS\Recordlist\RecordList\RecordListHookInterface {
+class ListModule implements RecordListGetTableHookInterface, RecordListHookInterface {
 
 	/**
 	 * @var \TYPO3\CMS\Core\Database\DatabaseConnection
@@ -40,7 +44,9 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 	public function getDBlistQuery($table, $pageId, &$additionalWhereClause, &$selectedFieldsList, &$parentObject) {
 		$this->databaseConnection = $GLOBALS['TYPO3_DB'];
 		$this->formEngine = GeneralUtility::makeInstance('TYPO3\\CMS\\Backend\\Form\\FormEngine');
-		$this->formEngine->initDefaultBEmode();
+		if (version_compare(TYPO3_version, '7.2.99', '<=')) {
+			$this->formEngine->initDefaultBEMode();
+		}
 		$this->formEngine->backPath = $GLOBALS['BACK_PATH'];
 
 		// addWhere
@@ -80,20 +86,27 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 					}
 				}
 				if (count($searchFieldContents)) {
-					$searchLabel = $this->formEngine->sL('LLL:EXT:listmod/Resources/Private/Language/locallang.xml:searchform.legend');
-					$tableTitle = $this->formEngine->sL($GLOBALS['TCA'][$table]['ctrl']['title']);
+					$searchLabel = $this->getLanguageService()->sL('LLL:EXT:listmod/Resources/Private/Language/locallang.xml:searchform.legend');
+					$tableTitle = $this->getLanguageService()->sL($GLOBALS['TCA'][$table]['ctrl']['title']);
 					$searchFormContent = '';
 					$searchFormContent .= $this->formEngine->printNeededJSFunctions_top();
 					$searchFormContent .= $this->formEngine->printNeededJSFunctions();
 					$searchFormContent .= '<fieldset>';
 					$searchFormContent .= '<legend>' . $searchLabel . ' "' . $tableTitle . '"</legend>';
 					$searchFormContent .= join('', $searchFieldContents);
-					$searchFormContent .= '<input type="submit" value="' . $this->formEngine->sL('LLL:EXT:listmod/Resources/Private/Language/locallang.xml:searchform.submit') . '" style="margin-top: 15px;" />';
+					$searchFormContent .= '<input type="submit" value="' . $this->getLanguageService()->sL('LLL:EXT:listmod/Resources/Private/Language/locallang.xml:searchform.submit') . '" style="margin-top: 15px;" />';
 					$searchFormContent .= '</fieldset>';
 					$parentObject->HTMLcode .= $searchFormContent;
 				}
 			}
 		}
+	}
+
+	/**
+	 * @return LanguageService
+	 */
+	protected function getLanguageService() {
+		return $GLOBALS['LANG'];
 	}
 
 	/**
@@ -111,9 +124,23 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 				'config' => $conf,
 			),
 		);
-		$labelDef    = $GLOBALS['TCA'][$table]['columns'][$item]['label'];
-		$labelValue  = $this->formEngine->sL($labelDef);
-		$formElement = $this->formEngine->getSingleField_SW('', '', array(), $confarray);
+		$labelDef = $GLOBALS['TCA'][$table]['columns'][$item]['label'];
+		$labelValue = $this->getLanguageService()->sL($labelDef);
+		if (version_compare(TYPO3_version, '7.2.99', '<=')) {
+			$formElement = $this->formEngine->getSingleField_SW('', '', array(), $confarray);
+		} else {
+			/** @var \TYPO3\CMS\Backend\Form\NodeFactory $nodeFactory */
+			$nodeFactory = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Form\NodeFactory::class);
+			$formElement = $nodeFactory->create(array(
+				'renderType' => 'singleFieldContainer',
+				'parameterArray' => $confarray,
+				'fieldName' => $item,
+				'table' => $table,
+				'databaseRow' => array(),
+				'inlineStructure' => array(),
+				'nodeFactory' => $nodeFactory,
+			))->render()['html'];
+		}
 		$formElement = str_replace($this->extensionKey . '[' . $item . ']' . '_hr', $this->extensionKey . '[' . $item . ']', $formElement);
 		$formElement = preg_replace('/<input\ type=\"hidden.*?>/s', '', $formElement);
 		$formElement = str_replace($this->extensionKey . '[' . $item . ']" value=""', $this->extensionKey . '[' . $item . ']" value="' . $this->filterCriteria[$item] . '"', $formElement);
@@ -209,7 +236,12 @@ class ListModule implements \TYPO3\CMS\Backend\RecordList\RecordListGetTableHook
 		}
 		$defaultSettings = isset($configuration['_default.']) ? $configuration['_default.'] : array();
 		$tableSettings   = isset($configuration[$table . '.']) ? $configuration[$table . '.'] : array();
-		$settings        = GeneralUtility::array_merge_recursive_overrule($defaultSettings, $tableSettings);
+		if (version_compare(TYPO3_version, '6.1.99', '<=')) {
+			$settings = GeneralUtility::array_merge_recursive_overrule($defaultSettings, $tableSettings);
+		} else {
+			$settings = $defaultSettings;
+			ArrayUtility::mergeRecursiveWithOverrule($settings, $tableSettings);
+		}
 		foreach (array_keys($cells) as $cellName) {
 			if (isset($settings[$cellName]) && $settings[$cellName] === "0") {
 				$cells[$cellName] = $parentObject->spaceIcon;
