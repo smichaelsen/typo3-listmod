@@ -1,5 +1,9 @@
 {
 	"name": "smichaelsen/listmod",
-	"version": "0.3.1",
-	"type": "typo3-cms-extension"
+	"type": "typo3-cms-extension",
+	"autoload": {
+		"psr-4": {
+			"T3SEO\\Listmod\\": "Classes/"
+		}
+	}
 }
