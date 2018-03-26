@@ -6,10 +6,10 @@ $EM_CONF['listmod'] = array(
 	'state' => 'beta',
 	'author' => 'Sebastian Michaelsen',
 	'author_email' => 'sebastian@michaelsen.io',
-	'version' => '0.5.0',
+	'version' => '1.0.0-dev',
 	'constraints' => array(
 		'depends' => array(
-			'typo3' => '6.0.0-6.2.99',
+			'typo3' => '8.7.0-8.7.99',
 		),
 	)
 );
